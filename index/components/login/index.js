@@ -4,6 +4,7 @@ import { Axios, getCookie } from 'Public'
 import { Link } from 'react-router-dom'
 import { Form, Icon, Input, Button, Checkbox, Carousel, message, Tooltip } from 'antd';
 import css from './login.scss'
+import {getCaptcha} from '../../api/user'
 const FormItem = Form.Item;
 import io from 'socket.io-client';
 import qs from 'qs'
@@ -22,9 +23,10 @@ class Index extends React.Component {
     }
 
     getCode = () => {
-        Axios.get(`/api/verification/code2?w=110&h=32`).then(ret => {
-            this.refs.code.innerHTML = ret;
-        })
+        getCaptcha(Math.random())
+        // Axios.get(`/api/verification/code2?w=110&h=32`).then(ret => {
+        //     this.refs.code.innerHTML = ret;
+        // })
     };
 
     handleSubmit = (e) => {
@@ -54,6 +56,7 @@ class Index extends React.Component {
         const { getFieldDecorator } = this.props.form;
         return <QueueAnim type="alpha">
             <div className={css.boxs} key={1}>
+                {console.log(process.env.BASE_URL,"what is baseUrl")}
                 <div className={css.login_logo}>
                     {/* <div>
                         <img src="https://i.bstu.cn/img/logo.png" alt=""/>

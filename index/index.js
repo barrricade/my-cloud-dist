@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Route, Switch, HashRouter, BrowserRouter as Router, Redirect} from 'react-router-dom'
 import './public/css/nprogress.css'
-import Index from './components/index'
+import Index from './components/index/index'
 import {Icon, Modal} from 'antd'
 import Bundle from './bundle';
 
