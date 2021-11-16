@@ -1,51 +1,51 @@
 import QueueAnim from 'rc-queue-anim';
 import React from 'react';
-import { Axios, getCookie } from 'Public'
+import { getCookie } from 'Public'
 import { Link } from 'react-router-dom'
 import { Form, Icon, Input, Button, Checkbox, Carousel, message, Tooltip } from 'antd';
 import css from './login.scss'
-import {getCaptcha} from '../../api/user'
+import {getCaptcha,userLogin} from '../../api/user'
+import { connect } from 'react-redux';
+import { addUserinfo } from '../../actions'
 const FormItem = Form.Item;
-import io from 'socket.io-client';
-import qs from 'qs'
 
 class Index extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            code: ''
+            captcha: "",
+            loginForm:{
+                Account:"",
+                Password:"",
+                Captcha:""
+            }
         }
     }
 
-    componentDidMount() {
+    componentDidMount () {
+        // console.log("sssss",this.props.Userinfo)
         getCookie('token') ? this.props.history.push("/") : null;
         this.getCode();
     }
 
     getCode = () => {
-        getCaptcha(Math.random())
-        // Axios.get(`/api/verification/code2?w=110&h=32`).then(ret => {
-        //     this.refs.code.innerHTML = ret;
-        // })
+        this.setState({code:getCaptcha(Math.random())})
     };
 
     handleSubmit = (e) => {
         e.preventDefault();
         this.props.form.validateFields((err, values) => {
             if (!err) {
-                console.log('Received values of form: ', qs.stringify(values));
-                Axios.post('/api/user/login', values).then(ret => {
-                    if (ret.state) {
+                console.log('Received values of form: ', values);
+                userLogin(values).then(res=>{
+                    if(res.data.code === 0) {
+                        this.props.dispatch(addUserinfo(res.data.data))
                         this.props.history.push("/");
-                    } else {
-                        message.error(ret.message)
-                        switch (ret.code) {
-                            case 10000:
-                                this.getCode();
-                                break;
-                            default:
-                                break;
-                        }
+                        message.success("登录成功")
+                    }
+                    else {
+                        message.error(res.data.data)
+                        this.getCode()
                     }
                 })
             }
@@ -56,7 +56,6 @@ class Index extends React.Component {
         const { getFieldDecorator } = this.props.form;
         return <QueueAnim type="alpha">
             <div className={css.boxs} key={1}>
-                {console.log(process.env.BASE_URL,"what is baseUrl")}
                 <div className={css.login_logo}>
                     {/* <div>
                         <img src="https://i.bstu.cn/img/logo.png" alt=""/>
@@ -173,17 +172,17 @@ class Index extends React.Component {
                     <h2 className={css.title}>账号密码登录</h2>
                     <Form onSubmit={this.handleSubmit}>
                         <FormItem>
-                            {getFieldDecorator('userName', {
-                                rules: [{ required: true, message: '请输入用户名!' }],
-                                initialValue: 'admin'
+                            {getFieldDecorator('Account', {
+                                rules: [{ required: true, message: '请输入用户名!' }]
+                                // initialValue: 'admin'
                             })(
                                 <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="用户名" />
                             )}
                         </FormItem>
                         <FormItem>
-                            {getFieldDecorator('password', {
-                                rules: [{ required: true, message: '请输入密码!' }],
-                                initialValue: '123456'
+                            {getFieldDecorator('Password', {
+                                rules: [{ required: true, message: '请输入密码!' }]
+                                // initialValue: '123456'
                             })(
                                 <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password"
                                     placeholder="密码" />
@@ -191,13 +190,13 @@ class Index extends React.Component {
                         </FormItem>
                         <FormItem>
                             <div className={css.code}>
-                                {getFieldDecorator('code', {
+                                {getFieldDecorator('Captcha', {
                                     rules: [{ required: true, message: '请输入验证码!' }],
                                 })(
                                     <Input len={4} prefix={<Icon type="lock" style={{ fontSize: 13 }} />} placeholder="验证码" />
                                 )}
                                 <Tooltip placement="right" title="刷新">
-                                    <span className={css.code_svg} ref='code' onClick={this.getCode}>&nbsp;</span>
+                                    <img src={process.env.BASE_URL +  this.state.code} alt="img" onClick={()=>{this.getCode()}}></img>
                                 </Tooltip>
                             </div>
                         </FormItem>
@@ -225,4 +224,4 @@ class Index extends React.Component {
 }
 
 const Indexs = Form.create()(Index);
-export default Indexs
+export default connect(Userinfo=>Userinfo)(Indexs)

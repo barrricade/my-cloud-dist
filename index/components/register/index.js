@@ -1,9 +1,10 @@
 import React from 'react';
-import {Axios} from 'Public'
-import {Link} from 'react-router-dom'
-import {Modal, Form, Icon, Input, Button, Checkbox, Tooltip, message} from 'antd';
+import { Axios } from 'Public'
+import { Link } from 'react-router-dom'
+import { Modal, Form, Icon, Input, Button, Checkbox, Tooltip, message } from 'antd';
 const confirm = Modal.confirm;
 import css from './register.scss'
+import { getCaptcha, register } from '../../api/user'
 
 const FormItem = Form.Item;
 
@@ -21,9 +22,7 @@ class Index extends React.Component {
     }
 
     getCode = () => {
-        Axios.get('/api/verification/code2').then(ret => {
-            this.setState({code: ret})
-        })
+        this.setState({ code: getCaptcha(Math.random()) })
     };
 
     handleSubmit = (e) => {
@@ -31,41 +30,56 @@ class Index extends React.Component {
         this.props.form.validateFields((err, values) => {
             if (!err) {
                 console.log('Received values of form: ', values);
-                Axios.post('/api/register', values).then(ret => {
-                    if (ret.state) {
-                        Modal.success({
-                            title: '提示',
-                            content: (
-                                <div>
-                                    <p>恭喜你！</p>
-                                    <p>注册账号成功。</p>
-                                    <a href="/login">马上登录</a>
-                                </div>
-                            ),
-                            onOk() {
-                            },
-                        });
-                    } else {
-                        message.error(ret.message)
-                        switch (ret.code){
-                            case 10000:
-                                this.getCode();
-                                break;
-                            default:
-                                break;
+                if (values.Checked) {
+                    register(values).then(res => {
+                        if (res.data.code === 0) {
+                            this.props.history.push("/");
+                            message.success("注册成功")
                         }
-                    }
-                })
+                        else {
+                            message.error(res.data.data)
+                            this.getCode()
+                        }
+                    })
+                }
+                else {
+                    message.error("请同意协议")
+                }
+                // Axios.post('/api/register', values).then(ret => {
+                //     if (ret.state) {
+                //         Modal.success({
+                //             title: '提示',
+                //             content: (
+                //                 <div>
+                //                     <p>恭喜你！</p>
+                //                     <p>注册账号成功。</p>
+                //                     <a href="/login">马上登录</a>
+                //                 </div>
+                //             ),
+                //             onOk() {
+                //             },
+                //         });
+                //     } else {
+                //         message.error(ret.message)
+                //         switch (ret.code) {
+                //             case 10000:
+                //                 this.getCode();
+                //                 break;
+                //             default:
+                //                 break;
+                //         }
+                //     }
+                // })
             }
         });
     }
 
     agreement = (sta) => {
-        this.setState({visible: sta})
+        this.setState({ visible: sta })
     }
 
     render() {
-        const {visible, code} = this.state;
+        const { visible, code } = this.state;
         let title = '用户注册协议';
         let con = '一、总则\n' +
             '1.1 cloud-disk的所有权和运营权归barri所有。 \n' +
@@ -126,53 +140,60 @@ class Index extends React.Component {
             '8.1 本协议的订立、执行和解释及争议的解决均应适用中华人民共和国法律。 \n' +
             '8.2 如本协议中的任何条款无论因何种原因完全或部分无效或不具有执行力，本协议的其余条款仍应有效并且有约束力。\n' +
             '8.3 本协议解释权及修订权归barri所有。'
-        const {getFieldDecorator} = this.props.form;
+        const { getFieldDecorator } = this.props.form;
         return <div className={css.bg}>
             <div className={css.box}>
                 <h1 className={css.title}>加入我们</h1>
                 <Form onSubmit={this.handleSubmit}>
                     <FormItem>
-                        {getFieldDecorator('name', {
-                            rules: [{required: true, message: '请输入用户名!'}],
+                        {getFieldDecorator('Account', {
+                            rules: [{ required: true, message: '请输入用户名!' }],
                         })(
-                            <Input prefix={<Icon type="user" style={{fontSize: 13}}/>} placeholder="用户名"/>
+                            <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="用户名" />
                         )}
                     </FormItem>
                     <FormItem>
-                        {getFieldDecorator('rpassword', {
-                            rules: [{required: true, message: '请输入密码!'}],
+                        {getFieldDecorator('Phone', {
+                            rules: [{ required: true, message: '请输入手机号!' }],
                         })(
-                            <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password"
-                                   placeholder="密码"/>
+                            <Input prefix={<Icon type="phone" style={{ fontSize: 13 }} />} placeholder="手机号" />
                         )}
                     </FormItem>
                     <FormItem>
-                        {getFieldDecorator('rspassword', {
-                            rules: [{required: true, message: '请再次输入密码!'}],
+                        {getFieldDecorator('Password', {
+                            rules: [{ required: true, message: '请输入密码!' }],
                         })(
-                            <Input prefix={<Icon type="lock" style={{fontSize: 13}}/>} type="password"
-                                   placeholder="验证密码"/>
+                            <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password"
+                                placeholder="密码" />
+                        )}
+                    </FormItem>
+                    <FormItem>
+                        {getFieldDecorator('RsPassword', {
+                            rules: [{ required: true, message: '请再次输入密码!' }],
+                        })(
+                            <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password"
+                                placeholder="验证密码" />
                         )}
                     </FormItem>
                     <FormItem>
                         <div className={css.code}>
-                            {getFieldDecorator('code', {
-                                rules: [{required: true, message: '请输入验证码!'}],
+                            {getFieldDecorator('Captcha', {
+                                rules: [{ required: true, message: '请输入验证码!' }],
                             })(
-                                <Input len={4} prefix={<Icon type="lock" style={{fontSize: 13}}/>} placeholder="验证码"/>
+                                <Input len={4} prefix={<Icon type="lock" style={{ fontSize: 13 }} />} placeholder="验证码" />
                             )}
                             <Tooltip placement="right" title="刷新">
-                                <img onClick={this.getCode} src='http://localhost:3012/api/verification/code2' alt="验证码"/>
+                                <img src={process.env.BASE_URL + this.state.code} alt="img" onClick={() => { this.getCode() }}></img>
                             </Tooltip>
                         </div>
                     </FormItem>
                     <FormItem>
-                        {getFieldDecorator('remember', {
+                        {getFieldDecorator('Checked', {
                             valuePropName: 'checked',
                             initialValue: false,
                         })(
                             <Checkbox>同意<a onClick={this.agreement.bind(this, true)}
-                                           href="javascript:">协议</a></Checkbox>
+                                href="javascript:">协议</a></Checkbox>
                         )}
                         <Button type="primary" htmlType="submit">
                             注册
@@ -193,9 +214,9 @@ class Index extends React.Component {
                         </Button>,
                     ]}
                 >
-                <pre className={css.agreement}>
-                    {con}
-                </pre>
+                    <pre className={css.agreement}>
+                        {con}
+                    </pre>
                 </Modal>
             </div>
         </div>

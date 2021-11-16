@@ -38,6 +38,16 @@ module.exports = {
             chunks: false,
             chunkModules: false
         },
+        proxy: {
+            '/cloud': {
+              target: `http://localhost:3500`,
+              ws: true,
+              changeOrigin: true,
+              pathRewrite: {
+                '^/cloud': '/cloud',
+              },
+            },
+          },
     },
     // 模块处理
     module: {
@@ -137,7 +147,7 @@ module.exports = {
             template: './index.html'
         }),
         // 定义变量，一般用于开发环境log或者全局变量
-        new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify(process.env.NODE_ENV),'BASE_URL':JSON.stringify('http://localhost:3500')}}),
+        new webpack.DefinePlugin({'process.env': {'NODE_ENV': JSON.stringify(process.env.NODE_ENV),'BASE_URL':JSON.stringify('http://localhost:3001')}}),
         // 根据模块调用次数，给模块分配ids，常被调用的ids分配更短的id
         new webpack.optimize.OccurrenceOrderPlugin(),
         // 多个 html共用一个js文件(chunk)

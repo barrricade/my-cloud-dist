@@ -29,31 +29,31 @@ export default class Index extends React.Component {
             const {catalog} = this.state;
             route = catalog.url ? catalog.url : '';
         }
-        Axios.get(`/api/oss/list?name=${route}`).then(res => {
-            let catalog = {
-                url: '',
-                list: []
-            };
-            if (res.data.prefixes) {
-                res.data.prefixes.map(item => {
-                    catalog.list.push({
-                        name: item,
-                        check: 0,
-                        isDirectory: 1,
-                    })
-                });
-            }
-            if (res.data.objects) {
-                res.data.objects.map(item => {
-                    catalog.list.push({
-                        check: 0,
-                        isDirectory: 0,
-                        ...item
-                    })
-                });
-            }
-            this.setState({catalog: catalog, allCheckSta: false})
-        })
+        // Axios.get(`/api/oss/list?name=${route}`).then(res => {
+        //     let catalog = {
+        //         url: '',
+        //         list: []
+        //     };
+        //     if (res.data.prefixes) {
+        //         res.data.prefixes.map(item => {
+        //             catalog.list.push({
+        //                 name: item,
+        //                 check: 0,
+        //                 isDirectory: 1,
+        //             })
+        //         });
+        //     }
+        //     if (res.data.objects) {
+        //         res.data.objects.map(item => {
+        //             catalog.list.push({
+        //                 check: 0,
+        //                 isDirectory: 0,
+        //                 ...item
+        //             })
+        //         });
+        //     }
+        //     this.setState({catalog: catalog, allCheckSta: false})
+        // })
     };
 
     // 返回上一级
