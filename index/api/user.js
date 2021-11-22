@@ -6,5 +6,5 @@ export function userLogin(data) {
   return POST("/cloud/login", data)
 }
 export function register(data) {
-  return POST("/cloud/add_user", data)
+  return POST("/cloud/register", data)
 }
